@@ -210,6 +210,11 @@ class T2c:
 
 
 if __name__ == '__main__':
-    t = T2c()
-    t.sync_all_tasks(datetime(2020, 2, 10))
-    # t.run(alltasks=True)
+    while True:
+        try:
+            t = T2c()
+            # t.sync_all_tasks(datetime(2020, 2, 10))
+            t.run()
+        except Exception as e:
+            print(e)
+        sleep(60 * 60 * 12)
