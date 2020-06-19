@@ -1,0 +1,8 @@
+clockify:
+  url: https://api.clockify.me/api/v1/
+  token: XXXXXXXXXXXX
+  timezone: Europe/Rome
+
+timing:
+  url: https://web.timingapp.com/api/v1/
+  token: XXXXXXXXXXXX
