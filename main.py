@@ -241,6 +241,7 @@ class T2c:
     def run(self):
         tasks = self.get_last_tasks()
         if len(tasks) == 0:
+            print(f"{datetime.now()} No New Tasks")
             return 'No tasks'
 
         for task in tasks:
@@ -250,6 +251,7 @@ class T2c:
 
 
 if __name__ == '__main__':
+    print("Starting ...")
     t = T2c()
     # t.sync_all_tasks(datetime(2019, 11, 1))
     # t.sync_all_tasks(datetime(2019, 12, 10))
