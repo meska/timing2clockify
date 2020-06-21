@@ -2,7 +2,15 @@ clockify:
   url: https://api.clockify.me/api/v1/
   token: XXXXXXXXXXXX
   timezone: Europe/Rome
+  workspace_name: xxxxx
 
 timing:
   url: https://web.timingapp.com/api/v1/
   token: XXXXXXXXXXXX
+
+t2c:
+  refresh_time: 10800
+
+telegram:
+  token: xxxxxxx
+  chat_id: 12345679

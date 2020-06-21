@@ -7,6 +7,7 @@ from dateutil.parser import parse
 from munch import munchify
 # noinspection PyPackageRequirements
 from slugify import slugify
+from telegram import Bot
 from yaml import safe_load
 
 
@@ -14,14 +15,19 @@ class T2c:
     cache = {}
 
     def __init__(self):
-
         if not os.path.exists('config.yaml'):
             raise FileNotFoundError('Missing config.yaml')
         with open('config.yaml') as stream:
             self.config = munchify(safe_load(stream))
 
+        if self.config.telegram.token:
+            self.bot = Bot(token=self.config.telegram.token)
+        else:
+            self.bot = False
+
     def get_last_tasks(self):
-        start_date = (datetime.now() - timedelta(days=3)).strftime("%Y-%m-%d %H:%M:%S")
+        start_date = (datetime.now() - timedelta(seconds=int(self.config.t2c.refresh_time) * 3)).strftime(
+            "%Y-%m-%d %H:%M:%S")
         res = requests.get(
             url=f"{self.config.timing.url}time-entries?start_date_min={start_date}"
                 f"&is_running=false&include_project_data=true&include_child_projects=true",
@@ -60,14 +66,47 @@ class T2c:
 
     def upload_task(self, task):
         user_id = self.clokify_get_user()
-        workspace_id = self.clokify_get_workspace(task.project.title_chain[0])
-        project_id = self.clokify_get_project(workspace_id, task.project.title, task.project.color)
+        workspace_id = self.clokify_get_workspace(self.config.clockify.workspace_name)
+        client_id = self.clokify_get_client(workspace_id, task.project.title_chain[0])
+        project_id = self.clokify_get_project(workspace_id, client_id, task.project.title, task.project.color)
         task_id = self.clokify_get_task(user_id, workspace_id, project_id, task.title if task.title else 'no title')
         res, time_id = self.clokify_time_entry(user_id, workspace_id, project_id, task_id, task)
         if res:
             print(f"Task ADD: {task.title} {task.start_date} {time_id}")
+            if self.bot:
+                self.bot.send_message(
+                    self.config.telegram.chat_id,
+                    f"Clockify ADD: {task.project.title_chain[0]} {task.project.title}\n"
+                    f"{task.title} {parse(task.start_date).strftime('%d/%m/%Y %H:%M:%S')}"
+                )
         else:
             print(f"Task SKIP: {task.title} {task.start_date} {time_id}")
+
+    def clokify_get_client(self, workspace_id, client_name):
+        if self.cache.get(f'client_{slugify(client_name)}'):
+            return self.cache[f'client_{slugify(client_name)}']
+        else:
+            res = requests.get(
+                url=f"{self.config.clockify.url}workspaces/{workspace_id}/clients",
+                headers={"X-Api-Key": self.config.clockify.token}
+
+            )
+            clients = [x.id for x in munchify(res.json()) if x.name == client_name]
+
+            if not clients:
+                # create client
+                res = requests.post(
+                    url=f"{self.config.clockify.url}workspaces/{workspace_id}/clients",
+                    headers={"X-Api-Key": self.config.clockify.token},
+                    json={
+                        "name": client_name
+                    }
+                )
+                self.cache[f'client_{slugify(client_name)}'] = munchify(res.json()).id
+                return self.cache[f'client_{slugify(client_name)}']
+            else:
+                self.cache[f'client_{slugify(client_name)}'] = clients[0]
+                return self.cache[f'client_{slugify(client_name)}']
 
     def clokify_get_workspace(self, workspace_name):
         if self.cache.get(f'workspace_{slugify(workspace_name)}'):
@@ -95,7 +134,7 @@ class T2c:
                 self.cache[f'workspace_{slugify(workspace_name)}'] = workspaces[0]
                 return self.cache[f'workspace_{slugify(workspace_name)}']
 
-    def clokify_get_project(self, workspace_id, project_name, color):
+    def clokify_get_project(self, workspace_id, client_id, project_name, color):
         """
         Get or create project
         :param color:
@@ -123,6 +162,7 @@ class T2c:
                     json={
                         "name": project_name,
                         "isPublic": "false",
+                        "clientId": client_id,
                         "color": color[0:7],
                         "hourlyRate": {"amount": 6000, "currency": "EURO"},
                         "billable": "true"
@@ -210,11 +250,14 @@ class T2c:
 
 
 if __name__ == '__main__':
+    t = T2c()
+    # t.sync_all_tasks(datetime(2019, 11, 1))
+    # t.sync_all_tasks(datetime(2019, 12, 10))
     while True:
         try:
-            t = T2c()
-            # t.sync_all_tasks(datetime(2020, 2, 10))
             t.run()
         except Exception as e:
+            if t.bot:
+                t.bot.send_message(t.config.telegram.chat_id, f"T2c Error! {e}")
             print(e)
-        sleep(60 * 60 * 12)
+        sleep(int(t.config.t2c.refresh_time))
