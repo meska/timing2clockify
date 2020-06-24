@@ -26,7 +26,7 @@ class T2c:
             self.bot = False
 
     def get_last_tasks(self):
-        start_date = (datetime.now() - timedelta(seconds=int(self.config.t2c.refresh_time) * 3)).strftime(
+        start_date = (datetime.now() - timedelta(days=7)).strftime(
             "%Y-%m-%d %H:%M:%S")
         res = requests.get(
             url=f"{self.config.timing.url}time-entries?start_date_min={start_date}"
@@ -253,7 +253,9 @@ class T2c:
 if __name__ == '__main__':
     print("Starting ...")
     t = T2c()
-    # t.sync_all_tasks(datetime(2019, 11, 1))
+    # in avvio sincronizzo indietro di un mese
+    mesefa = datetime.now() - timedelta(days=30)
+    t.sync_all_tasks(mesefa)
     # t.sync_all_tasks(datetime(2019, 12, 10))
     while True:
         try:
