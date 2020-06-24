@@ -63,6 +63,7 @@ class T2c:
                 break
             date = date + timedelta(days=1)
             sleep(1)
+        print("End sync all tasks")
 
     def upload_task(self, task):
         user_id = self.clokify_get_user()
@@ -254,8 +255,7 @@ if __name__ == '__main__':
     print("Starting ...")
     t = T2c()
     # in avvio sincronizzo indietro di un mese
-    mesefa = datetime.now() - timedelta(days=30)
-    t.sync_all_tasks(mesefa)
+    t.sync_all_tasks(datetime.now() - timedelta(days=30))
     # t.sync_all_tasks(datetime(2019, 12, 10))
     while True:
         try:
