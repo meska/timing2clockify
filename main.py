@@ -42,7 +42,7 @@ class T2c:
 
     def sync_all_tasks(self, date):
         while True:
-            print(f"DATA: {date}")
+            print(f"OLD_TASK DATA: {date}")
             res = requests.get(
                 url=f"{self.config.timing.url}time-entries?"
                     f"is_running=false&include_project_data=true&include_child_projects=true"
@@ -255,7 +255,8 @@ if __name__ == '__main__':
     print("Starting ...")
     t = T2c()
     # in avvio sincronizzo indietro di un mese
-    t.sync_all_tasks(datetime.now() - timedelta(days=30))
+    mesefa = datetime.now() - timedelta(days=30)
+    t.sync_all_tasks(datetime(mesefa.year, mesefa.month, mesefa.day))
     # t.sync_all_tasks(datetime(2019, 12, 10))
     while True:
         try:
