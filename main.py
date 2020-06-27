@@ -42,7 +42,7 @@ class T2c:
 
     def sync_all_tasks(self, date):
         while True:
-            print(f"OLD_TASK DATA: {date}")
+            print(f"{datetime.now()} OLD_TASK DATA: {date}")
             res = requests.get(
                 url=f"{self.config.timing.url}time-entries?"
                     f"is_running=false&include_project_data=true&include_child_projects=true"
@@ -63,7 +63,7 @@ class T2c:
                 break
             date = date + timedelta(days=1)
             sleep(1)
-        print("End sync all tasks")
+        print(f"{datetime.now()} End sync all tasks")
 
     def upload_task(self, task):
         user_id = self.clokify_get_user()
@@ -73,7 +73,7 @@ class T2c:
         task_id = self.clokify_get_task(user_id, workspace_id, project_id, task.title if task.title else 'no title')
         res, time_id = self.clokify_time_entry(user_id, workspace_id, project_id, task_id, task)
         if res:
-            print(f"Task ADD: {task.title} {task.start_date} {time_id}")
+            print(f"{datetime.now()} Task ADD: {task.title} {task.start_date} {time_id}")
             if self.bot:
                 self.bot.send_message(
                     self.config.telegram.chat_id,
@@ -81,7 +81,7 @@ class T2c:
                     f"{task.title} {parse(task.start_date).strftime('%d/%m/%Y %H:%M:%S')}"
                 )
         else:
-            print(f"Task SKIP: {task.title} {task.start_date} {time_id}")
+            print(f"{datetime.now()} Task SKIP: {task.title} {task.start_date} {time_id}")
 
     def clokify_get_client(self, workspace_id, client_name):
         if self.cache.get(f'client_{slugify(client_name)}'):
@@ -240,6 +240,8 @@ class T2c:
             return False, entries[0]
 
     def run(self):
+        print(f"{datetime.now()} Checking Tasks")
+        t.bot.send_message(t.config.telegram.chat_id, f"T2c Error! {e}")
         tasks = self.get_last_tasks()
         if len(tasks) == 0:
             print(f"{datetime.now()} No New Tasks")
@@ -252,7 +254,7 @@ class T2c:
 
 
 if __name__ == '__main__':
-    print("Starting ...")
+    print(f"{datetime.now()} Starting ...")
     t = T2c()
     # in avvio sincronizzo indietro di un mese
     mesefa = datetime.now() - timedelta(days=30)
