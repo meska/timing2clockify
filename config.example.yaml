@@ -3,6 +3,8 @@ clockify:
   token: XXXXXXXXXXXX
   timezone: Europe/Rome
   workspace_name: xxxxx
+  hourly_rate: 6000
+  currency: EURO
 
 timing:
   url: https://web.timingapp.com/api/v1/

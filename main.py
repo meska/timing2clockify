@@ -165,7 +165,8 @@ class T2c:
                         "isPublic": "false",
                         "clientId": client_id,
                         "color": color[0:7],
-                        "hourlyRate": {"amount": 6000, "currency": "EURO"},
+                        "hourlyRate": {"amount": self.config.clockify.hourly_rate,
+                                       "currency": self.config.clockify.currency},
                         "billable": "true"
                     }
                 )
@@ -265,5 +266,5 @@ if __name__ == '__main__':
             print(str(e))
             if t.bot:
                 t.bot.send_message(t.config.telegram.chat_id, f"T2c Error! {e}")
-        print(f"{datetime.now()} Sleeping {int(t.config.t2c.refresh_time)/60} minutes...")
+        print(f"{datetime.now()} Sleeping {int(t.config.t2c.refresh_time) / 60} minutes...")
         sleep(int(t.config.t2c.refresh_time))
