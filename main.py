@@ -190,7 +190,6 @@ class T2c:
         res = requests.get(
             url=f"{self.config.clockify.url}workspaces/{workspace_id}/projects/{project_id}/tasks",
             headers={"X-Api-Key": self.config.clockify.token}
-
         )
         tasks = [x.id for x in munchify(res.json()) if x.name == title]
         if not tasks:
@@ -241,7 +240,6 @@ class T2c:
 
     def run(self):
         print(f"{datetime.now()} Checking Tasks")
-        t.bot.send_message(t.config.telegram.chat_id, f"T2c Error! {e}")
         tasks = self.get_last_tasks()
         if len(tasks) == 0:
             print(f"{datetime.now()} No New Tasks")
@@ -257,14 +255,15 @@ if __name__ == '__main__':
     print(f"{datetime.now()} Starting ...")
     t = T2c()
     # in avvio sincronizzo indietro di un mese
-    mesefa = datetime.now() - timedelta(days=30)
+    mesefa = datetime.now() - timedelta(days=15)
     t.sync_all_tasks(datetime(mesefa.year, mesefa.month, mesefa.day))
     # t.sync_all_tasks(datetime(2019, 12, 10))
     while True:
         try:
             t.run()
         except Exception as e:
+            print(str(e))
             if t.bot:
                 t.bot.send_message(t.config.telegram.chat_id, f"T2c Error! {e}")
-            print(e)
+        print(f"{datetime.now()} Sleeping {int(t.config.t2c.refresh_time)/60} minutes...")
         sleep(int(t.config.t2c.refresh_time))
